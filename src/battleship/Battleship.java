@@ -1,6 +1,7 @@
 package battleship;
 
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -15,7 +16,7 @@ public class Battleship {
     public void play() {
         System.out.println(this);
         for (Battleships b : Battleships.values()) {
-            this.placeShip(b.name, b.size);
+            this.placeShip(b);
             System.out.println(this);
         }
         System.out.println("The game starts!");
@@ -39,27 +40,31 @@ public class Battleship {
         }
     }
 
-    public Cell[] parseInput(String coords) {
+    private Cell[] parseInput(String coords) {
         String[] coordsData = coords.split(" ");
 
-        for (String s: coordsData) {
+        ArrayList<Cell> cells = new ArrayList<>();
+
+        for (String s : coordsData) {
             if (!s.matches("[A-J]([1-9]|10)")) {
                 return null;
             }
+            char letter = s.charAt(0);
+            int number = Integer.parseInt(s.substring(1));
+            cells.add(new Cell(letter, number));
         }
 
-        if (coordsData.length == 1) {
-            return new Cell[]{new Cell(coordsData[0].charAt(0), Integer.parseInt(coordsData[0].substring(1)))};
-        } else if (coordsData.length == 2) {
-            Cell[] cells = new Cell[]{new Cell(coordsData[0].charAt(0), Integer.parseInt(coordsData[0].substring(1))),
-                    new Cell(coordsData[1].charAt(0), Integer.parseInt(coordsData[1].substring(1)))};
-            Arrays.sort(cells);
-            return cells;
-        } else {
+        if (cells.size() < 1 || cells.size() > 2) {
             return null;
         }
-    }
 
+        Collections.sort(cells);
+
+        Cell[] cellArray = new Cell[cells.size()];
+        cellArray = cells.toArray(cellArray);
+
+        return cellArray;
+    }
 
     private void takeAShot() {
         System.out.print("Take a shot!\n> ");
@@ -84,8 +89,8 @@ public class Battleship {
         }
     }
 
-    private void placeShip(String name, int size) {
-        System.out.printf("Enter the coordinates of the %s (%d cells):%n> ", name, size);
+    private void placeShip(Battleships battleship) {
+        System.out.printf("Enter the coordinates of the %s (%d cells):%n> ", battleship.name, battleship.size);
         while (true) {
             Cell[] coords = this.parseInput(sc.nextLine());
             if (coords == null) {
@@ -93,7 +98,7 @@ public class Battleship {
                 continue;
             }
 
-            boolean verified = verifyPlacement(coords, size, name);
+            boolean verified = verifyPlacement(coords, battleship);
             if (verified) {
                 placeShipOnBoard(coords);
                 break;
@@ -120,7 +125,7 @@ public class Battleship {
         return coords[0].row != coords[1].row;
     }
 
-    private boolean verifyPlacement(Cell[] coords, int size, String name) {
+    private boolean verifyPlacement(Cell[] coords, Battleships battleship) {
         char row1 = coords[0].row;
         char row2 = coords[1].row;
         int column1 = coords[0].column;
@@ -135,12 +140,12 @@ public class Battleship {
         boolean isVertical = this.isVertical(coords);
         boolean correctLength;
         if (isVertical) {
-            correctLength = size == row2 - row1 + 1;
+            correctLength = battleship.size == row2 - row1 + 1;
         } else {
-            correctLength = size == Math.abs(column2 - column1) + 1;
+            correctLength = battleship.size == Math.abs(column2 - column1) + 1;
         }
         if (!correctLength) {
-            System.out.printf("Error! Wrong length of the %s! Try again:%n", name);
+            System.out.printf("Error! Wrong length of the %s! Try again:%n", battleship.name);
             return false;
         }
 
@@ -201,18 +206,15 @@ public class Battleship {
                     }
                 }
             }
-
-            for (int i = column1; i <= column2; i++) {
-                board[row1 - 64][i] = "O";
-            }
         }
 
         boolean nothingAround = nothingUp && nothingDown && nothingLeft && nothingRight && nothingColliding;
         if (!nothingAround) {
             System.out.println("Error! You placed it too close to another one. Try again:");
+            return false;
         }
 
-        return nothingAround;
+        return true;
     }
 
     public String toString() {
