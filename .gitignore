@@ -1,0 +1,7 @@
+# Ignore everything
+/*
+
+# Un-ignore out and src
+!/src/
+!/out/
+!/.gitignore
