@@ -8,9 +8,11 @@ import java.util.Scanner;
 public class Battleship {
     private final Scanner sc = new Scanner(System.in);
     private String[][] board;
+    private String[][] boardCoveredInFog;
 
     public Battleship() {
-        newBoard();
+        this.board = newBoard();
+        this.boardCoveredInFog = newBoard();
     }
 
     public void play() {
@@ -20,13 +22,13 @@ public class Battleship {
             System.out.println(this);
         }
         System.out.println("The game starts!");
-        System.out.println(this);
+        System.out.println(this.boardCoveredInFogToString());
         this.takeAShot();
 
     }
 
-    private void newBoard() {
-        board = new String[11][11];
+    private static String[][] newBoard() {
+        String[][] board = new String[11][11];
         board[0][0] = " ";
         for (int i = 1; i <= 10; i++) {
             board[0][i] = String.valueOf(i);
@@ -38,6 +40,7 @@ public class Battleship {
                 board[i][j] = "~";
             }
         }
+        return board;
     }
 
     private Cell[] parseInput(String coords) {
@@ -76,17 +79,37 @@ public class Battleship {
                 continue;
             }
 
-            if (board[coord[0].row - 64][coord[0].column].equals("O")) {
-                System.out.println("You hit a ship!");
+            String symbolAtCell = board[coord[0].row - 64][coord[0].column];
+            if (symbolAtCell.equals("O") || symbolAtCell.equals("X")) {
                 board[coord[0].row - 64][coord[0].column] = "X";
+                boardCoveredInFog[coord[0].row - 64][coord[0].column] = "X";
+                System.out.println(this.boardCoveredInFogToString());
+                System.out.println("You hit a ship!");
                 System.out.println(this);
             } else {
-                System.out.println("You missed!");
                 board[coord[0].row - 64][coord[0].column] = "M";
+                boardCoveredInFog[coord[0].row - 64][coord[0].column] = "M";
+                System.out.println(this.boardCoveredInFogToString());
+                System.out.println("You missed!");
                 System.out.println(this);
             }
-            break;
+
+            if (!anyShipsLeft()) {
+                System.out.println("You sank the last ship. You won. Congratulations!");
+                break;
+            }
         }
+    }
+
+    private boolean anyShipsLeft() {
+        for (String[] strings: board) {
+            for (String string: strings) {
+                if (string.equals("O")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void placeShip(Battleships battleship) {
@@ -218,6 +241,15 @@ public class Battleship {
     }
 
     public String toString() {
+        /* returns normal board */
+        return getString(board);
+    }
+
+    public String boardCoveredInFogToString() {
+        return getString(boardCoveredInFog);
+    }
+
+    private String getString(String[][] board) {
         StringBuilder ret = new StringBuilder();
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
