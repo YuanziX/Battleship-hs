@@ -1,5 +1,6 @@
 package battleship;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -17,6 +18,10 @@ public class Battleship {
             this.placeShip(b.name, b.size);
             System.out.println(this);
         }
+        System.out.println("The game starts!");
+        System.out.println(this);
+        this.takeAShot();
+
     }
 
     private void newBoard() {
@@ -35,13 +40,48 @@ public class Battleship {
     }
 
     public Cell[] parseInput(String coords) {
-        if (!coords.matches("[A-J]\\d{1,2} [A-J]\\d{1,2}")) {
-            return null;
+        String[] coordsData = coords.split(" ");
+
+        for (String s: coordsData) {
+            if (!s.matches("[A-J]([1-9]|10)")) {
+                return null;
+            }
         }
 
-        String[] coordsData = coords.split(" ");
-        return new Cell[]{new Cell(coordsData[0].charAt(0), Integer.parseInt(coordsData[0].substring(1))),
-                new Cell(coordsData[1].charAt(0), Integer.parseInt(coordsData[1].substring(1)))};
+        if (coordsData.length == 1) {
+            return new Cell[]{new Cell(coordsData[0].charAt(0), Integer.parseInt(coordsData[0].substring(1)))};
+        } else if (coordsData.length == 2) {
+            Cell[] cells = new Cell[]{new Cell(coordsData[0].charAt(0), Integer.parseInt(coordsData[0].substring(1))),
+                    new Cell(coordsData[1].charAt(0), Integer.parseInt(coordsData[1].substring(1)))};
+            Arrays.sort(cells);
+            return cells;
+        } else {
+            return null;
+        }
+    }
+
+
+    private void takeAShot() {
+        System.out.print("Take a shot!\n> ");
+        while (true) {
+            Cell[] coord = this.parseInput(sc.nextLine());
+
+            if (coord == null) {
+                System.out.print("Error! You entered the wrong coordinates! Try again:\n> ");
+                continue;
+            }
+
+            if (board[coord[0].row - 64][coord[0].column].equals("O")) {
+                System.out.println("You hit a ship!");
+                board[coord[0].row - 64][coord[0].column] = "X";
+                System.out.println(this);
+            } else {
+                System.out.println("You missed!");
+                board[coord[0].row - 64][coord[0].column] = "M";
+                System.out.println(this);
+            }
+            break;
+        }
     }
 
     private void placeShip(String name, int size) {
@@ -80,20 +120,11 @@ public class Battleship {
         return coords[0].row != coords[1].row;
     }
 
-    private boolean isOutsideBoard(Cell[] coords) {
-        return coords[1].row > 'J' || coords[1].column > 10;
-    }
-
     private boolean verifyPlacement(Cell[] coords, int size, String name) {
         char row1 = coords[0].row;
         char row2 = coords[1].row;
         int column1 = coords[0].column;
         int column2 = coords[1].column;
-
-        if (isOutsideBoard(coords)) {
-            System.out.println("Placement is outside of the board! Try again:");
-            return false;
-        }
 
         // Checking if the coordinates are diagonal
         if (row1 != row2 && column1 != column2) {
