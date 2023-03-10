@@ -7,24 +7,20 @@ import java.util.Scanner;
 
 public class Battleship {
     private final Scanner sc = new Scanner(System.in);
-    private String[][] board;
-    private String[][] boardCoveredInFog;
+    private final String[][] board;
+    private final String[][] boardCoveredInFog;
 
     public Battleship() {
         this.board = newBoard();
         this.boardCoveredInFog = newBoard();
     }
 
-    public void play() {
-        System.out.println(this);
+    public void placeShips() {
         for (Battleships b : Battleships.values()) {
             this.placeShip(b);
             System.out.println(this);
+            System.out.println();
         }
-        System.out.println("The game starts!");
-        System.out.println(this.boardCoveredInFogToString());
-        this.takeAShot();
-
     }
 
     private static String[][] newBoard() {
@@ -69,13 +65,12 @@ public class Battleship {
         return cellArray;
     }
 
-    private void takeAShot() {
-        System.out.print("Take a shot!\n> ");
+    public void takeAShot() {
         while (true) {
             Cell[] coord = this.parseInput(sc.nextLine());
 
             if (coord == null) {
-                System.out.print("Error! You entered the wrong coordinates! Try again:\n> ");
+                System.out.println("Error! You entered the wrong coordinates! Try again:");
                 continue;
             }
 
@@ -83,25 +78,43 @@ public class Battleship {
             if (symbolAtCell.equals("O") || symbolAtCell.equals("X")) {
                 board[coord[0].row - 64][coord[0].column] = "X";
                 boardCoveredInFog[coord[0].row - 64][coord[0].column] = "X";
-                System.out.println(this.boardCoveredInFogToString());
-                System.out.println("You hit a ship!");
-                System.out.println(this);
+
+                if (shipSunk(coord)) {
+                    System.out.println("You sank a ship!");
+                } else {
+                    System.out.println("You hit a ship!");
+                }
+
             } else {
                 board[coord[0].row - 64][coord[0].column] = "M";
                 boardCoveredInFog[coord[0].row - 64][coord[0].column] = "M";
-                System.out.println(this.boardCoveredInFogToString());
                 System.out.println("You missed!");
-                System.out.println(this);
             }
 
             if (!anyShipsLeft()) {
                 System.out.println("You sank the last ship. You won. Congratulations!");
-                break;
             }
+            break;
         }
     }
 
-    private boolean anyShipsLeft() {
+    public boolean shipSunk(Cell[] coords) {
+        /* only meant for single cell */
+        if (coords.length > 1) {
+            return false;
+        }
+
+        char row = coords[0].row; int column = coords[0].column;
+
+        boolean nothingUp = row == 'A' || !board[row - 64 - 1][column].equals("O");
+        boolean nothingDown = row == 'J' || !board[row - 64 + 1][column].equals("O");
+        boolean nothingLeft = column == 1 || !board[row - 64][column - 1].equals("O");
+        boolean nothingRight = column == 10 || !board[row - 64][column + 1].equals("O");
+
+        return nothingUp && nothingDown && nothingLeft && nothingRight;
+    }
+
+    public boolean anyShipsLeft() {
         for (String[] strings: board) {
             for (String string: strings) {
                 if (string.equals("O")) {
@@ -113,11 +126,12 @@ public class Battleship {
     }
 
     private void placeShip(Battleships battleship) {
-        System.out.printf("Enter the coordinates of the %s (%d cells):%n> ", battleship.name, battleship.size);
+        System.out.printf("Enter the coordinates of the %s (%d cells):%n%n", battleship.name, battleship.size);
         while (true) {
             Cell[] coords = this.parseInput(sc.nextLine());
+            System.out.println();
             if (coords == null) {
-                System.out.print("Invalid input! Try again:\n> ");
+                System.out.println("Invalid input! Try again:");
                 continue;
             }
 
@@ -126,7 +140,6 @@ public class Battleship {
                 placeShipOnBoard(coords);
                 break;
             }
-            System.out.print("> ");
         }
     }
 
@@ -156,7 +169,6 @@ public class Battleship {
 
         // Checking if the coordinates are diagonal
         if (row1 != row2 && column1 != column2) {
-            System.out.println("Error! Wrong ship location! Try again:");
             return false;
         }
 
@@ -168,7 +180,7 @@ public class Battleship {
             correctLength = battleship.size == Math.abs(column2 - column1) + 1;
         }
         if (!correctLength) {
-            System.out.printf("Error! Wrong length of the %s! Try again:%n", battleship.name);
+            System.out.printf("Error! Wrong length of the %s! Try again:%n%n", battleship.name);
             return false;
         }
 
@@ -233,7 +245,7 @@ public class Battleship {
 
         boolean nothingAround = nothingUp && nothingDown && nothingLeft && nothingRight && nothingColliding;
         if (!nothingAround) {
-            System.out.println("Error! You placed it too close to another one. Try again:");
+            System.out.println("Error! You placed it too close to another one. Try again:\n");
             return false;
         }
 

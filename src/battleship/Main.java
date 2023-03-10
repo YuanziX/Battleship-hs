@@ -4,7 +4,7 @@ public class Main {
 
     public static void main(String[] args) {
         // Write your code here
-        Battleship bs = new Battleship();
-        bs.play();
+        UserInterface ui = new UserInterface();
+        ui.play();
     }
 }
