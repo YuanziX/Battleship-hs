@@ -1,26 +1,20 @@
 package battleship;
 
-import java.util.Collections;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Scanner;
 
-public class Battleship {
+public class Board {
+    private final String name;
     private final Scanner sc = new Scanner(System.in);
     private final String[][] board;
-    private final String[][] boardCoveredInFog;
+    private final String[][] boardInFog;
 
-    public Battleship() {
+    public Board(String name) {
+        this.name = name;
         this.board = newBoard();
-        this.boardCoveredInFog = newBoard();
-    }
-
-    public void placeShips() {
-        for (Battleships b : Battleships.values()) {
-            this.placeShip(b);
-            System.out.println(this);
-            System.out.println();
-        }
+        this.boardInFog = newBoard();
     }
 
     private static String[][] newBoard() {
@@ -37,6 +31,14 @@ public class Battleship {
             }
         }
         return board;
+    }
+
+    public void placeShips() {
+        for (Battleships b : Battleships.values()) {
+            this.placeShip(b);
+            System.out.println(this);
+            System.out.println();
+        }
     }
 
     private Cell[] parseInput(String coords) {
@@ -77,7 +79,7 @@ public class Battleship {
             String symbolAtCell = board[coord[0].row - 64][coord[0].column];
             if (symbolAtCell.equals("O") || symbolAtCell.equals("X")) {
                 board[coord[0].row - 64][coord[0].column] = "X";
-                boardCoveredInFog[coord[0].row - 64][coord[0].column] = "X";
+                boardInFog[coord[0].row - 64][coord[0].column] = "X";
 
                 if (shipSunk(coord)) {
                     System.out.println("You sank a ship!");
@@ -87,7 +89,7 @@ public class Battleship {
 
             } else {
                 board[coord[0].row - 64][coord[0].column] = "M";
-                boardCoveredInFog[coord[0].row - 64][coord[0].column] = "M";
+                boardInFog[coord[0].row - 64][coord[0].column] = "M";
                 System.out.println("You missed!");
             }
 
@@ -104,7 +106,8 @@ public class Battleship {
             return false;
         }
 
-        char row = coords[0].row; int column = coords[0].column;
+        char row = coords[0].row;
+        int column = coords[0].column;
 
         boolean nothingUp = row == 'A' || !board[row - 64 - 1][column].equals("O");
         boolean nothingDown = row == 'J' || !board[row - 64 + 1][column].equals("O");
@@ -115,8 +118,8 @@ public class Battleship {
     }
 
     public boolean anyShipsLeft() {
-        for (String[] strings: board) {
-            for (String string: strings) {
+        for (String[] strings : board) {
+            for (String string : strings) {
                 if (string.equals("O")) {
                     return true;
                 }
@@ -252,13 +255,17 @@ public class Battleship {
         return true;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public String toString() {
         /* returns normal board */
         return getString(board);
     }
 
     public String boardCoveredInFogToString() {
-        return getString(boardCoveredInFog);
+        return getString(boardInFog);
     }
 
     private String getString(String[][] board) {

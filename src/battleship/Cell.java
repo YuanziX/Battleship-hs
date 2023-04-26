@@ -1,6 +1,6 @@
 package battleship;
 
-public class Cell implements Comparable<Cell>{
+public class Cell implements Comparable<Cell> {
     public final char row;
     public final int column;
 
